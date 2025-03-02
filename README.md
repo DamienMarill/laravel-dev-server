@@ -1,8 +1,8 @@
 # Laravel Dev Serve
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
-[![Total Downloads](https://img.shields.io/packagist/dt/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
-[![License](https://img.shields.io/packagist/l/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/marill/laravel-dev-server.svg)](https://packagist.org/packages/marill/laravel-dev-server)
+[![Total Downloads](https://img.shields.io/packagist/dt/marill/laravel-dev-server.svg)](https://packagist.org/packages/marill/laravel-dev-server)
+[![License](https://img.shields.io/packagist/l/marill/laravel-dev-server.svg)](https://packagist.org/packages/marill/laravel-dev-server)
 
 **Laravel Dev Serve** est un outil pour démarrer et gérer tous vos serveurs de développement Laravel en parallèle, avec une interface conviviale pour surveiller leur état et leurs logs.
 
