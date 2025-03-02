@@ -1,93 +1,142 @@
-# :package_description
+# Laravel Dev Serve
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
+[![Total Downloads](https://img.shields.io/packagist/dt/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
+[![License](https://img.shields.io/packagist/l/marill/laravel-dev-serve.svg)](https://packagist.org/packages/marill/laravel-dev-serve)
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
----
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+**Laravel Dev Serve** est un outil pour démarrer et gérer tous vos serveurs de développement Laravel en parallèle, avec une interface conviviale pour surveiller leur état et leurs logs.
 
-## Support us
+## 🚀 Fonctionnalités
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
+- ✅ **Démarrage parallèle** de tous vos serveurs de développement
+- ✅ **Surveillance automatique** et redémarrage en cas de plantage
+- ✅ **Logs séparés** pour chaque service
+- ✅ **Interface colorée** pour une meilleure lisibilité
+- ✅ **Personnalisation complète** des serveurs via un fichier de configuration
+- ✅ **Compatibilité CI/CD** pour les environnements d'intégration continue
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
-
-## Installation
-
-You can install the package via composer:
+## 📋 Installation
 
 ```bash
-composer require :vendor_slug/:package_slug
+composer require marill/laravel-dev-serve --dev
 ```
 
-You can publish and run the migrations with:
+Publiez la configuration (optionnel):
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
+php artisan vendor:publish --tag=dev-serve-config
 ```
 
-You can publish the config file with:
+## 🔧 Utilisation
+
+### Démarrer tous les serveurs
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan dev:serve
 ```
 
-This is the contents of the published config file:
+Ce qui lancera en parallèle:
+- Le serveur Laravel (php artisan serve)
+- Le serveur de développement frontend (npm run dev ou Vite)
+- Le worker de queue
+- Le scheduler
+
+### Options disponibles
+
+```bash
+# Spécifier les ports
+php artisan dev:serve --port=8000 --npm-port=3000
+
+# Utiliser Vite au lieu de npm run dev
+php artisan dev:serve --vite
+
+# Désactiver certains serveurs
+php artisan dev:serve --no-laravel --no-queue
+
+# Utiliser une configuration personnalisée
+php artisan dev:serve --config=config/dev-serve.php
+```
+
+### Consulter les logs
+
+```bash
+# Afficher les logs de tous les serveurs
+php artisan dev:logs
+
+# Suivre les logs en temps réel
+php artisan dev:logs --follow
+
+# Afficher les logs d'un service spécifique
+php artisan dev:logs laravel --follow
+
+# Afficher les dernières N lignes
+php artisan dev:logs --lines=100
+
+# Lister tous les services disponibles
+php artisan dev:logs --list
+
+# Effacer les logs
+php artisan dev:logs --clear
+php artisan dev:logs laravel --clear
+```
+
+## ⚙️ Configuration
+
+Voici un exemple de configuration complète:
 
 ```php
+// config/dev-serve.php
 return [
+    'servers' => [
+        'laravel' => [
+            'enabled' => true,
+            'name' => 'Laravel Server',
+            'command' => 'php artisan serve --host=0.0.0.0 --port=8000',
+            'color' => 'green',
+            'autoRestart' => true,
+        ],
+        'vite' => [
+            'enabled' => true,
+            'name' => 'Vite Dev Server',
+            'command' => 'npm run dev',
+            'color' => 'blue',
+            'autoRestart' => false,
+        ],
+        'queue' => [
+            'enabled' => true,
+            'name' => 'Queue Worker',
+            'command' => 'php artisan queue:work --tries=3 --timeout=90',
+            'color' => 'yellow',
+            'autoRestart' => true,
+        ],
+        'scheduler' => [
+            'enabled' => true,
+            'name' => 'Task Scheduler',
+            'command' => 'php artisan schedule:work',
+            'color' => 'magenta',
+            'autoRestart' => true,
+        ],
+        // Ajoutez vos serveurs personnalisés ici
+    ],
+    'polling_interval' => 0.5, // En secondes
 ];
 ```
 
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
-
-## Usage
-
-```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
-```
-
-## Testing
+## 🧪 Tests
 
 ```bash
 composer test
 ```
 
-## Changelog
+## 🔄 Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+Consultez le [CHANGELOG](CHANGELOG.md) pour les informations sur les versions récentes.
 
-## Contributing
+## ⚖️ Licence
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Ce package est distribué sous la licence MIT. Voir [LICENSE.md](LICENSE.md) pour plus de détails.
 
-## Security Vulnerabilities
+## 🙏 Crédits
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+- [Damien Marill](https://marill.dev)
+- [Claude Sonnet 3.7](https://claude.ai/)
