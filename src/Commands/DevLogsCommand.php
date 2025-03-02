@@ -58,8 +58,9 @@ class DevLogsCommand extends Command
     public function handle()
     {
         // Vérifier si le répertoire de logs existe
-        if (!File::exists($this->logsPath)) {
+        if (! File::exists($this->logsPath)) {
             $this->error("Le dossier des logs n'existe pas. Exécutez d'abord la commande dev:serve.");
+
             return Command::FAILURE;
         }
 
@@ -85,10 +86,11 @@ class DevLogsCommand extends Command
      */
     protected function listServices(): int
     {
-        $logFiles = File::glob($this->logsPath . '/*.log');
+        $logFiles = File::glob($this->logsPath.'/*.log');
 
         if (empty($logFiles)) {
             $this->error("Aucun fichier de log trouvé. Exécutez d'abord la commande dev:serve.");
+
             return Command::FAILURE;
         }
 
@@ -118,10 +120,11 @@ class DevLogsCommand extends Command
     protected function clearLogs(?string $service): int
     {
         if ($service) {
-            $logFile = $this->logsPath . '/' . $service . '.log';
+            $logFile = $this->logsPath.'/'.$service.'.log';
 
-            if (!File::exists($logFile)) {
+            if (! File::exists($logFile)) {
                 $this->error("Le service '$service' n'existe pas.");
+
                 return Command::FAILURE;
             }
 
@@ -130,15 +133,15 @@ class DevLogsCommand extends Command
             $this->info("Les logs du service '$service' ont été effacés.");
         } else {
             // Demander confirmation avant d'effacer tous les logs
-            if (!$this->confirm('Voulez-vous vraiment effacer TOUS les logs de TOUS les services?', false)) {
+            if (! $this->confirm('Voulez-vous vraiment effacer TOUS les logs de TOUS les services?', false)) {
                 return Command::SUCCESS;
             }
 
-            $logFiles = File::glob($this->logsPath . '/*.log');
+            $logFiles = File::glob($this->logsPath.'/*.log');
 
             foreach ($logFiles as $file) {
                 File::put($file, '');
-                $this->line(" • Logs effacés: " . basename($file));
+                $this->line(' • Logs effacés: '.basename($file));
             }
 
             $this->info('Tous les logs ont été effacés.');
@@ -153,7 +156,7 @@ class DevLogsCommand extends Command
     protected function showLogs(?string $service): int
     {
         // Capturer les interruptions (Ctrl+C) si possible
-        if (!$this->isWindows && function_exists('pcntl_async_signals')) {
+        if (! $this->isWindows && function_exists('pcntl_async_signals')) {
             pcntl_async_signals(true);
             pcntl_signal(SIGINT, function () {
                 $this->interrupted = true;
@@ -169,20 +172,22 @@ class DevLogsCommand extends Command
         $lines = $this->option('lines');
 
         if ($service) {
-            $logFile = $this->logsPath . '/' . $service . '.log';
+            $logFile = $this->logsPath.'/'.$service.'.log';
 
-            if (!File::exists($logFile)) {
+            if (! File::exists($logFile)) {
                 $this->error("Le service '$service' n'existe pas.");
+
                 return Command::FAILURE;
             }
 
             $this->displayLogs($logFile, $follow, $lines);
         } else {
             // Afficher tous les logs
-            $logFiles = File::glob($this->logsPath . '/*.log');
+            $logFiles = File::glob($this->logsPath.'/*.log');
 
             if (empty($logFiles)) {
                 $this->error("Aucun fichier de log trouvé. Exécutez d'abord la commande dev:serve.");
+
                 return Command::FAILURE;
             }
 
@@ -202,6 +207,7 @@ class DevLogsCommand extends Command
         if ($this->isWindows) {
             $process = new Process(['where', 'tail']);
             $process->run();
+
             return $process->isSuccessful();
         }
 
@@ -223,7 +229,7 @@ class DevLogsCommand extends Command
 
         $file->seek($offset);
 
-        while (!$file->eof()) {
+        while (! $file->eof()) {
             $result[] = $file->fgets();
         }
 
@@ -237,11 +243,12 @@ class DevLogsCommand extends Command
     {
         $serviceName = pathinfo($logFile, PATHINFO_FILENAME);
 
-        $this->info("Affichage des logs pour le service: $serviceName" . ($follow ? ' (CTRL+C pour arrêter)' : ''));
+        $this->info("Affichage des logs pour le service: $serviceName".($follow ? ' (CTRL+C pour arrêter)' : ''));
         $this->line('');
 
         if (File::size($logFile) === 0) {
-            $this->warn("Le fichier de log est vide.");
+            $this->warn('Le fichier de log est vide.');
+
             return;
         }
 
@@ -249,7 +256,7 @@ class DevLogsCommand extends Command
         // utiliser une implémentation PHP pure pour au moins afficher les lignes
         $tailAvailable = $this->isTailAvailable();
 
-        if (!$tailAvailable) {
+        if (! $tailAvailable) {
             $this->warn("Commande 'tail' non disponible. Utilisation d'une méthode alternative.");
 
             if ($follow) {
@@ -259,23 +266,24 @@ class DevLogsCommand extends Command
             // Lire les dernières lignes avec PHP
             $lastLines = $this->readLastLinesPhp($logFile, $lines);
             $this->output->write($this->colorizeOutput(implode('', $lastLines)));
+
             return;
         }
 
         if ($follow) {
             // Utiliser tail -f pour suivre les logs en temps réel
-            $process = new Process(['tail', '-f', '-n', (string)$lines, $logFile]);
+            $process = new Process(['tail', '-f', '-n', (string) $lines, $logFile]);
             $process->setTimeout(null);
             $process->start();
 
-            while ($process->isRunning() && !$this->interrupted) {
+            while ($process->isRunning() && ! $this->interrupted) {
                 $output = $process->getIncrementalOutput();
-                if (!empty($output)) {
+                if (! empty($output)) {
                     $this->output->write($this->colorizeOutput($output));
                 }
 
                 $errorOutput = $process->getIncrementalErrorOutput();
-                if (!empty($errorOutput)) {
+                if (! empty($errorOutput)) {
                     $this->output->write("<fg=red>$errorOutput</>");
                 }
 
@@ -288,14 +296,14 @@ class DevLogsCommand extends Command
             }
         } else {
             // Afficher les N dernières lignes sans suivre
-            $process = new Process(['tail', '-n', (string)$lines, $logFile]);
+            $process = new Process(['tail', '-n', (string) $lines, $logFile]);
             $process->run();
 
             if ($process->isSuccessful()) {
                 $output = $process->getOutput();
                 $this->output->write($this->colorizeOutput($output));
             } else {
-                $this->error("Erreur lors de la lecture du fichier: " . $process->getErrorOutput());
+                $this->error('Erreur lors de la lecture du fichier: '.$process->getErrorOutput());
             }
         }
     }
@@ -305,11 +313,11 @@ class DevLogsCommand extends Command
      */
     protected function displayCombinedLogs(array $logFiles, bool $follow, int $lines): void
     {
-        $this->info("Affichage des logs pour tous les services" . ($follow ? ' (CTRL+C pour arrêter)' : ''));
+        $this->info('Affichage des logs pour tous les services'.($follow ? ' (CTRL+C pour arrêter)' : ''));
         $this->line('');
 
         // Vérifier si tail est disponible
-        if (!$this->isTailAvailable()) {
+        if (! $this->isTailAvailable()) {
             $this->warn("Commande 'tail' non disponible. Affichage des logs individuellement.");
 
             // Afficher les logs de chaque fichier séparément
@@ -321,6 +329,7 @@ class DevLogsCommand extends Command
                 $lastLines = $this->readLastLinesPhp($file, $lines);
                 $this->output->write($this->colorizeOutput(implode('', $lastLines)));
             }
+
             return;
         }
 
@@ -332,7 +341,7 @@ class DevLogsCommand extends Command
         }
 
         $command[] = '-n';
-        $command[] = (string)$lines;
+        $command[] = (string) $lines;
 
         // Ajouter tous les fichiers de log
         $command = array_merge($command, $logFiles);
@@ -342,14 +351,14 @@ class DevLogsCommand extends Command
         $process->setTimeout(null);
         $process->start();
 
-        while ($process->isRunning() && !$this->interrupted) {
+        while ($process->isRunning() && ! $this->interrupted) {
             $output = $process->getIncrementalOutput();
-            if (!empty($output)) {
+            if (! empty($output)) {
                 $this->output->write($this->colorizeOutput($output));
             }
 
             $errorOutput = $process->getIncrementalErrorOutput();
-            if (!empty($errorOutput)) {
+            if (! empty($errorOutput)) {
                 $this->output->write("<fg=red>$errorOutput</>");
             }
 
@@ -373,6 +382,7 @@ class DevLogsCommand extends Command
         foreach ($lines as $line) {
             if (empty($line)) {
                 $colorized[] = $line;
+
                 continue;
             }
 
@@ -397,7 +407,7 @@ class DevLogsCommand extends Command
                     'API Server' => 'cyan',
                     default => 'white',
                 };
-                $line = preg_replace('/\[(' . preg_quote($service) . ')\]/', "[<fg=$color>$1</>]", $line);
+                $line = preg_replace('/\[('.preg_quote($service).')\]/', "[<fg=$color>$1</>]", $line);
             }
 
             $colorized[] = $line;
@@ -419,6 +429,6 @@ class DevLogsCommand extends Command
 
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

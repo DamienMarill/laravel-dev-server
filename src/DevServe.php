@@ -5,7 +5,8 @@ namespace Marill\DevServe;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 
-class DevServe {
+class DevServe
+{
     /**
      * L'application.
      *
@@ -32,7 +33,7 @@ class DevServe {
         $this->logsPath = storage_path('logs/dev-serve');
 
         // Créer le répertoire de logs s'il n'existe pas
-        if (!File::exists($this->logsPath)) {
+        if (! File::exists($this->logsPath)) {
             File::makeDirectory($this->logsPath, 0755, true);
         }
     }
@@ -68,7 +69,7 @@ class DevServe {
 
             $process->start(function ($type, $buffer) use ($logHandle) {
                 $outputPrefix = $type === Process::ERR ? 'ERROR' : 'OUT';
-                $line = "[" . date('Y-m-d H:i:s') . "] [{$outputPrefix}] {$buffer}";
+                $line = '['.date('Y-m-d H:i:s')."] [{$outputPrefix}] {$buffer}";
                 fwrite($logHandle, $line);
             });
         } else {

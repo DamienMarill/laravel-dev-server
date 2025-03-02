@@ -81,7 +81,7 @@ class DevServeCommand extends Command
         $this->isCI = env('CI', false);
 
         // Créer le répertoire de logs s'il n'existe pas
-        if (!File::exists($this->logsPath)) {
+        if (! File::exists($this->logsPath)) {
             File::makeDirectory($this->logsPath, 0755, true);
         }
     }
@@ -92,7 +92,7 @@ class DevServeCommand extends Command
     public function handle()
     {
         // Capturer les interruptions (Ctrl+C) si possible
-        if (!$this->isWindows && function_exists('pcntl_async_signals')) {
+        if (! $this->isWindows && function_exists('pcntl_async_signals')) {
             pcntl_async_signals(true);
             pcntl_signal(SIGINT, [$this, 'handleInterrupt']);
             pcntl_signal(SIGTERM, [$this, 'handleInterrupt']);
@@ -131,43 +131,45 @@ class DevServeCommand extends Command
         if ($configPath && File::exists($configPath)) {
             $customConfig = include $configPath;
             $this->info("Configuration chargée depuis : {$configPath}");
+
             return $customConfig;
         }
 
         // Option 2: Config publiée standard (dev-serve.php)
         if (config()->has('dev-serve')) {
-            $this->info("Configuration chargée depuis config/dev-serve.php");
+            $this->info('Configuration chargée depuis config/dev-serve.php');
+
             return config('dev-serve');
         }
 
         // Option 3: Config par défaut intégrée
-        $this->info("Utilisation de la configuration par défaut");
+        $this->info('Utilisation de la configuration par défaut');
 
         return [
             'servers' => [
                 'laravel' => [
-                    'enabled' => !$this->option('no-laravel'),
+                    'enabled' => ! $this->option('no-laravel'),
                     'name' => 'Laravel Server',
-                    'command' => 'php artisan serve --port=' . $this->option('port'),
+                    'command' => 'php artisan serve --port='.$this->option('port'),
                     'color' => 'green',
                     'autoRestart' => true,
                 ],
                 'npm' => [
-                    'enabled' => !$this->option('no-npm'),
+                    'enabled' => ! $this->option('no-npm'),
                     'name' => $this->option('vite') ? 'Vite' : 'NPM',
-                    'command' => $this->option('vite') ? 'npm run dev' : ('npm run dev -- --port=' . $this->option('npm-port')),
+                    'command' => $this->option('vite') ? 'npm run dev' : ('npm run dev -- --port='.$this->option('npm-port')),
                     'color' => 'blue',
                     'autoRestart' => false,
                 ],
                 'queue' => [
-                    'enabled' => !$this->option('no-queue'),
+                    'enabled' => ! $this->option('no-queue'),
                     'name' => 'Queue Worker',
                     'command' => 'php artisan queue:work --tries=3 --timeout=90',
                     'color' => 'yellow',
                     'autoRestart' => true,
                 ],
                 'scheduler' => [
-                    'enabled' => !$this->option('no-scheduler'),
+                    'enabled' => ! $this->option('no-scheduler'),
                     'name' => 'Task Scheduler',
                     'command' => 'php artisan schedule:work',
                     'color' => 'magenta',
@@ -185,6 +187,7 @@ class DevServeCommand extends Command
     {
         if ($this->isCI) {
             $this->info('Dev Serve - Démarrage des serveurs de développement');
+
             return;
         }
 
@@ -205,15 +208,16 @@ class DevServeCommand extends Command
     protected function startServers(array $config): void
     {
         foreach ($config['servers'] as $key => $server) {
-            if (!$server['enabled']) {
+            if (! $server['enabled']) {
                 $this->line("<fg=gray>• {$server['name']} : désactivé</>");
+
                 continue;
             }
 
             $this->line("<fg={$server['color']}>• Démarrage de {$server['name']}...</>");
 
             // Créer un fichier de log pour ce serveur
-            $logFile = $this->logsPath . '/' . $key . '.log';
+            $logFile = $this->logsPath.'/'.$key.'.log';
             $this->logFiles->put($key, $logFile);
 
             // Démarrer le processus
@@ -247,13 +251,13 @@ class DevServeCommand extends Command
         $logHandle = fopen($logFile, 'a+');
 
         // Démarrer le processus
-        $process->start(function ($type, $buffer) use ($key, $server, $logHandle) {
+        $process->start(function ($type, $buffer) use ($server, $logHandle) {
             $outputPrefix = $type === Process::ERR ? 'ERROR' : 'OUT';
-            $line = "[" . date('Y-m-d H:i:s') . "] [{$server['name']}] [{$outputPrefix}] {$buffer}";
+            $line = '['.date('Y-m-d H:i:s')."] [{$server['name']}] [{$outputPrefix}] {$buffer}";
             fwrite($logHandle, $line);
         });
 
-        $this->line("<fg={$server['color']}>  → {$server['name']} démarré | PID: {$process->getPid()} | Log: " . basename($logFile) . "</>");
+        $this->line("<fg={$server['color']}>  → {$server['name']} démarré | PID: {$process->getPid()} | Log: ".basename($logFile).'</>');
 
         return $process;
     }
@@ -266,11 +270,11 @@ class DevServeCommand extends Command
         $this->output->writeln('');
         $this->info('Tous les serveurs sont démarrés. Appuyez sur Ctrl+C pour arrêter.');
         $this->output->writeln('');
-        $this->line('┌─' . str_repeat('─', 60) . '┐');
+        $this->line('┌─'.str_repeat('─', 60).'┐');
         $this->line('│ <fg=bright-yellow>STATUS SERVEURS</>                                             │');
-        $this->line('├─' . str_repeat('─', 60) . '┤');
+        $this->line('├─'.str_repeat('─', 60).'┤');
 
-        $maxNameLength = $this->processes->max(fn($data) => strlen($data['config']['name'])) + 2;
+        $maxNameLength = $this->processes->max(fn ($data) => strlen($data['config']['name'])) + 2;
 
         foreach ($this->processes as $key => $data) {
             $name = str_pad($data['config']['name'], $maxNameLength);
@@ -278,40 +282,40 @@ class DevServeCommand extends Command
             $process = $data['process'];
 
             if ($process->isRunning()) {
-                $status = "<fg=green>● ACTIF</>";
+                $status = '<fg=green>● ACTIF</>';
             } else {
                 $exitCode = $process->getExitCode();
                 $status = $exitCode === 0
-                    ? "<fg=yellow>○ TERMINÉ</>"
+                    ? '<fg=yellow>○ TERMINÉ</>'
                     : "<fg=red>✕ ÉCHEC ({$exitCode})</>";
             }
 
             $pid = $process->isRunning() ? $process->getPid() : 'N/A';
-            $this->line("│ <fg={$color}>{$name}</> {$status} | PID: {$pid} | Log: " . basename($this->logFiles->get($key)) . " │");
+            $this->line("│ <fg={$color}>{$name}</> {$status} | PID: {$pid} | Log: ".basename($this->logFiles->get($key)).' │');
         }
 
-        $this->line('└─' . str_repeat('─', 60) . '┘');
+        $this->line('└─'.str_repeat('─', 60).'┘');
 
         $this->output->writeln('');
         $this->line('Pour consulter les logs:');
-        $this->line('  <fg=cyan>• Tous: </><fg=white>tail -f ' . $this->logsPath . '/*.log</>');
+        $this->line('  <fg=cyan>• Tous: </><fg=white>tail -f '.$this->logsPath.'/*.log</>');
 
         foreach ($this->processes as $key => $data) {
             $color = $data['config']['color'];
-            $this->line("  <fg={$color}>• {$data['config']['name']}: </><fg=white>tail -f " . $this->logFiles->get($key) . "</>");
+            $this->line("  <fg={$color}>• {$data['config']['name']}: </><fg=white>tail -f ".$this->logFiles->get($key).'</>');
         }
 
         $this->output->writeln('');
 
         // Boucle de surveillance des processus
-        while (!$this->interrupted) {
+        while (! $this->interrupted) {
             // Vérifier les processus
             foreach ($this->processes as $key => $data) {
                 $process = $data['process'];
                 $config = $data['config'];
 
                 // Si le processus s'est terminé et qu'il doit redémarrer automatiquement
-                if (!$process->isRunning() && $config['autoRestart'] && !$this->interrupted) {
+                if (! $process->isRunning() && $config['autoRestart'] && ! $this->interrupted) {
                     $this->line("<fg={$config['color']}>• {$config['name']} s'est arrêté. Redémarrage...</>");
 
                     // Redémarrer le processus
@@ -354,7 +358,7 @@ class DevServeCommand extends Command
 
         // Ne pas appeler exit(0) si nous ne sommes pas dans un handler de signal
         // car cela interromprait le flux normal de l'exécution
-        if (!$this->isWindows && function_exists('pcntl_async_signals')) {
+        if (! $this->isWindows && function_exists('pcntl_async_signals')) {
             exit(0);
         }
     }
